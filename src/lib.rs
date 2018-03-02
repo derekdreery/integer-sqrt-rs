@@ -11,9 +11,11 @@
 //!
 //! # fn main() {
 //! assert_eq!(4u8.integer_sqrt(), 2);
+//! # }
 //! ```
 //!
 //! [`IntegerSquareRoot`]: ./trait.IntegerSquareRoot.html
+#![no_std]
 
 /// A trait implementing integer square root.
 pub trait IntegerSquareRoot {
@@ -88,7 +90,7 @@ impl_isqrt!(usize, u64, u32, u16, u8, isize, i64, i32, i16, i8);
 #[cfg(test)]
 mod tests {
     use super::IntegerSquareRoot;
-    use std::{u8, u16, u64, i8};
+    use core::{u8, u16, u64, i8};
 
     #[test]
     fn u8_sqrt() {
