@@ -15,6 +15,8 @@
 //!
 //! [`IntegerSquareRoot`]: ./trait.IntegerSquareRoot.html
 
+#![no_std]
+
 /// A trait implementing integer square root.
 pub trait IntegerSquareRoot {
     /// Find the integer square root.
