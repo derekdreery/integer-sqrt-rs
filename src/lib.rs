@@ -84,7 +84,7 @@ macro_rules! impl_isqrt {
 }
 
 
-impl_isqrt!(usize, u64, u32, u16, u8, isize, i64, i32, i16, i8);
+impl_isqrt!(usize, u128, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8);
 
 
 #[cfg(test)]
@@ -162,6 +162,24 @@ mod tests {
         // correct floored integer
         assert!(sqrt_max * sqrt_max <= u64::MAX);
         // check that the next number's square overflows
+        assert!((sqrt_max + 1).checked_mul(sqrt_max + 1).is_none());
+    }
+
+    #[test]
+    fn u128_sqrt() {
+        let sqrt_max: u128 = 18_446_744_073_709_551_615;
+        let tests = [
+            (0u128, 0u128),
+            (4, 2),
+            (7, 2),
+            (81, 9),
+            (80, 8),
+            (u128::max_value(), sqrt_max),
+        ];
+        for &(in_, out) in tests.iter() {
+            assert_eq!(in_.integer_sqrt(), out, "in {}", in_);
+        }
+        assert!(sqrt_max * sqrt_max <= u128::max_value());
         assert!((sqrt_max + 1).checked_mul(sqrt_max + 1).is_none());
     }
 }
