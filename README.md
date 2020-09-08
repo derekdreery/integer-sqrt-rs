@@ -7,8 +7,6 @@ for primitive integer types.
 ## Example
 
 ```rust
-extern crate integer_sqrt;
-
 // `use` trait to get functionality
 use integer_sqrt::IntegerSquareRoot;
 
