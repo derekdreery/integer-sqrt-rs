@@ -11,3 +11,5 @@ keywords = ["integer", "square", "root", "isqrt", "sqrt"]
 categories = ["algorithms", "no-std"]
 license = "Apache-2.0/MIT"
 
+[dependencies]
+num-traits = "0.2"
