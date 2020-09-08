@@ -44,11 +44,8 @@ pub trait IntegerSquareRoot {
         Self: Sized;
 }
 
-// This could be more optimized
 macro_rules! impl_isqrt {
-    () => ();
-    ($t:ty) => {impl_isqrt!($t,);};
-    ($t:ty, $($e:tt)*) => {
+    ($($t:ty)*) => { $(
         impl IntegerSquareRoot for $t {
             #[allow(unused_comparisons)]
             fn integer_sqrt_checked(&self) -> Option<Self> {
@@ -86,12 +83,10 @@ macro_rules! impl_isqrt {
                 Some(result)
             }
         }
-
-        impl_isqrt!($($e)*);
-    };
+    )* };
 }
 
-impl_isqrt!(usize, u128, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8);
+impl_isqrt!(usize u128 u64 u32 u16 u8 isize i128 i64 i32 i16 i8);
 
 #[cfg(test)]
 mod tests {
