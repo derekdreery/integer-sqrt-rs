@@ -44,54 +44,48 @@ pub trait IntegerSquareRoot {
         Self: Sized;
 }
 
-// This could be more optimized
-macro_rules! impl_isqrt {
-    () => ();
-    ($t:ty) => {impl_isqrt!($t,);};
-    ($t:ty, $($e:tt)*) => {
-        impl IntegerSquareRoot for $t {
-            #[allow(unused_comparisons)]
-            fn integer_sqrt_checked(&self) -> Option<Self> {
-                // Hopefully this will be stripped for unsigned numbers (impossible condition)
-                if *self < 0 {
-                    return None
-                }
-                // Find greatest shift
-                let mut shift = 2;
-                let mut n_shifted = *self >> shift;
-                // We check for n_shifted being self, since some implementations of logical
-                // right shifting shift modulo the word size.
-                while n_shifted != 0 && n_shifted != *self {
-                    shift = shift + 2;
-                    n_shifted = self.wrapping_shr(shift);
-                }
-                shift = shift - 2;
+#[inline(always)]
+fn integer_sqrt_impl<T: num_traits::PrimInt>(mut n: T) -> Option<T> {
+    use core::cmp::Ordering;
+    match n.cmp(&T::zero()) {
+        // Hopefully this will be stripped for unsigned numbers (impossible condition)
+        Ordering::Less => return None,
+        Ordering::Equal => return Some(T::zero()),
+        _ => {}
+    }
 
-                // Find digits of result.
-                let mut result = 0;
-                loop {
-                    result = result << 1;
-                    let candidate_result: $t = result + 1;
-                    if let Some(cr_square) = candidate_result.checked_mul(candidate_result) {
-                        if cr_square <= *self >> shift {
-                            result = candidate_result;
-                        }
-                    }
-                    if shift == 0 {
-                        break;
-                    }
-                    shift = shift.saturating_sub(2);
-                }
+    // Compute bit, the largest power of 4 <= n
+    let max_shift: u32 = T::zero().leading_zeros() - 1;
+    let shift: u32 = (max_shift - n.leading_zeros()) & !1;
+    let mut bit = T::one().unsigned_shl(shift);
 
-                Some(result)
-            }
+    // Algorithm based on the implementation in:
+    // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)
+    // Note that result/bit are logically unsigned (even if T is signed).
+    let mut result = T::zero();
+    while bit != T::zero() {
+        if n >= (result + bit) {
+            n = n - (result + bit);
+            result = result.unsigned_shr(1) + bit;
+        } else {
+            result = result.unsigned_shr(1);
         }
-
-        impl_isqrt!($($e)*);
-    };
+        bit = bit.unsigned_shr(2);
+    }
+    Some(result)
 }
 
-impl_isqrt!(usize, u128, u64, u32, u16, u8, isize, i128, i64, i32, i16, i8);
+macro_rules! impl_isqrt {
+    ($($t:ty)*) => { $(
+        impl IntegerSquareRoot for $t {
+            fn integer_sqrt_checked(&self) -> Option<Self> {
+                integer_sqrt_impl(*self)
+            }
+        }
+    )* };
+}
+
+impl_isqrt!(usize u128 u64 u32 u16 u8 isize i128 i64 i32 i16 i8);
 
 #[cfg(test)]
 mod tests {
