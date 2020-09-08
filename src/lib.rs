@@ -46,17 +46,18 @@ pub trait IntegerSquareRoot {
 
 #[inline(always)]
 fn integer_sqrt_impl<T: num_traits::PrimInt>(mut n: T) -> Option<T> {
-    // Hopefully this will be stripped for unsigned numbers (impossible condition)
-    if n < T::zero() {
-        return None;
+    use core::cmp::Ordering;
+    match n.cmp(&T::zero()) {
+        // Hopefully this will be stripped for unsigned numbers (impossible condition)
+        Ordering::Less => return None,
+        Ordering::Equal => return Some(T::zero()),
+        _ => {}
     }
 
     // Compute bit, the largest power of 4 <= n
-    use core::mem::size_of;
-    let mut bit = T::one().unsigned_shl(size_of::<T>() as u32 * 8 - 2);
-    while bit > n {
-        bit = bit.unsigned_shr(2);
-    }
+    let max_shift: u32 = T::zero().leading_zeros() - 1;
+    let shift: u32 = (max_shift - n.leading_zeros()) & !1;
+    let mut bit = T::one().unsigned_shl(shift);
 
     // Algorithm based on the implementation in:
     // https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)
